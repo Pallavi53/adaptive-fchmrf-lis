@@ -273,6 +273,7 @@ def metrics(discovery, truth):
 
     tp = np.sum(d & t)
     fp = np.sum(d & ~t)
+    tn = np.sum(~d & ~t)
     fn = np.sum(~d & t)
     discoveries = np.sum(d)
 
@@ -280,19 +281,24 @@ def metrics(discovery, truth):
     fnp = fn / max(np.sum(t), 1)
     precision = tp / max(tp + fp, 1)
     recall = tp / max(tp + fn, 1)
-    dice = 2*tp / max(2*tp + fp + fn, 1)
+    accuracy = (tp + tn) / max(tp + tn + fp + fn, 1)
+    f1 = 2 * precision * recall / max(precision + recall, 1e-12)
+    dice = 2 * tp / max(2 * tp + fp + fn, 1)
 
     return {
         "Discoveries": int(discoveries),
         "True Positives": int(tp),
         "False Positives": int(fp),
+        "True Negatives": int(tn),
+        "False Negatives": int(fn),
         "FDP": float(fdp),
         "FNP": float(fnp),
+        "Accuracy": float(accuracy),
         "Precision": float(precision),
         "Recall": float(recall),
+        "F1-Score": float(f1),
         "Dice": float(dice),
     }
-
 
 def surface_plot(volume, title, threshold=None):
     v = volume.copy()
@@ -417,8 +423,10 @@ st.dataframe(
     r["metrics"].style.format({
         "FDP": "{:.3f}",
         "FNP": "{:.3f}",
+        "Accuracy": "{:.3f}",
         "Precision": "{:.3f}",
         "Recall": "{:.3f}",
+        "F1-Score": "{:.3f}",
         "Dice": "{:.3f}",
     }),
     use_container_width=True,
@@ -429,6 +437,22 @@ st.caption(
     f"Target FDR α = {alpha:.2f}. For the synthetic experiment, ground-truth labels are known, "
     "so FDP/FNP/TP and Dice can be calculated exactly."
 )
+
+
+st.subheader("Adaptive fcHMRF-LIS Performance")
+
+fc_metrics = r["metrics"].loc[
+    r["metrics"]["Method"] == "Adaptive sparse fcHMRF-LIS"
+].iloc[0]
+
+m1, m2, m3, m4, m5 = st.columns(5)
+
+m1.metric("Accuracy", f"{fc_metrics['Accuracy'] * 100:.2f}%")
+m2.metric("Precision", f"{fc_metrics['Precision'] * 100:.2f}%")
+m3.metric("Recall", f"{fc_metrics['Recall'] * 100:.2f}%")
+m4.metric("F1-Score", f"{fc_metrics['F1-Score'] * 100:.2f}%")
+m5.metric("Dice Score", f"{fc_metrics['Dice'] * 100:.2f}%")
+
 
 st.subheader("2. Deep-learning-based ROI detection")
 roi1, roi2 = st.columns(2)

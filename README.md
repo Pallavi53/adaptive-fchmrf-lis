@@ -1,6 +1,6 @@
 # Adaptive fcHMRF-LIS Neuroimaging Demo
 
-One-hour deployable implementation of the project:
+
 
 **Adaptive fcHMRF-LIS with Deep Learning-Based ROI Detection for Neuroimaging Analysis**
 
